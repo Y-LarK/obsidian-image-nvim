@@ -51,9 +51,7 @@ return document.create_document_integration({
             local pw, ph = value:match("|(%d+)x(%d+)")
             if not pw then pw = value:match("|(%d+)") end
             if pw then
-              local w = tonumber(pw)
-              current_image.width = math.max(10, math.floor(w / 8))
-              if ph then current_image.height = math.max(5, math.floor(tonumber(ph) / 16)) end
+              current_image.width = 80 -- 硬编码测试
             else
               current_image.width = 50
             end
