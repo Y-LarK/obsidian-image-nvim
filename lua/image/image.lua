@@ -253,7 +253,11 @@ local from_file = function(path, options, state)
 
   if options and options.id then
     local existing_image = state.images[options.id] ---@type Image
-    if existing_image then return existing_image end
+    if existing_image then
+      if options.width then existing_image.geometry.width = options.width end
+      if options.height then existing_image.geometry.height = options.height end
+      return existing_image
+    end
   end
 
   local absolute_original_path = vim.fn.fnamemodify(path, ":p")

@@ -17,7 +17,12 @@ return document.create_document_integration({
     parser:parse(true)
     local inline_lang = "markdown_inline"
     local inlines = parser:children()[inline_lang]
-    local inline_query = vim.treesitter.query.parse(inline_lang, "(image (link_destination) @url) @image")
+    local inline_query = vim.treesitter.query.parse(inline_lang, [[
+      (image
+        (image_description) @desc
+        (link_destination) @url
+      ) @image
+    ]])
     local shortcut_query =
       vim.treesitter.query.parse(inline_lang, "(image (image_description (shortcut_link (link_text) @url))) @image")
 
@@ -47,6 +52,14 @@ return document.create_document_integration({
                 end_col = end_col,
               },
             }
+          elseif key == "desc" then
+            -- 解析 Obsidian 风格尺寸: alt|600 或 alt|600x400
+            local alt, width, height = value:match("^(.-)|(%d+)$")
+              or value:match("^(.-)|(%d+)x(%d+)$")
+            if current_image and alt then
+              current_image.width = tonumber(width)
+              current_image.height = height and tonumber(height) or nil
+            end
           elseif current_image and key == "url" then
             current_image.url = value
             table.insert(images, current_image)

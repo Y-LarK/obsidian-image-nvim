@@ -196,9 +196,22 @@ local create_document_integration = function(config)
       return
     end
 
+    -- 将 Obsidian 风格像素尺寸转换为终端行列数
+    local rwidth = item.match.width
+    local rheight = item.match.height
+    if rwidth or rheight then
+      local term_size = utils.term.get_size()
+      if term_size then
+        if rwidth then rwidth = math.floor(rwidth / term_size.cell_width) end
+        if rheight then rheight = math.floor(rheight / term_size.cell_height) end
+      end
+    end
+
     image:render({
       x = item.match.range.start_col,
       y = item.match.range.start_row,
+      width = rwidth,
+      height = rheight,
     })
   end
 
@@ -217,6 +230,8 @@ local create_document_integration = function(config)
             buffer = item.window.buffer,
             with_virtual_padding = not is_popup,
             namespace = config.name,
+            width = item.match.width,
+            height = item.match.height,
           }, function(image)
             if not image then return end
             if not is_current_remote_request(ctx, item, request_token) then return end
@@ -241,6 +256,8 @@ local create_document_integration = function(config)
           buffer = item.window.buffer,
           with_virtual_padding = not is_popup,
           namespace = config.name,
+          width = item.match.width,
+          height = item.match.height,
         })
         if ok and image then
           log.debug("Image created successfully", { id = item.id })
