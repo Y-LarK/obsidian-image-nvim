@@ -17,12 +17,9 @@ return document.create_document_integration({
     parser:parse(true)
     local inline_lang = "markdown_inline"
     local inlines = parser:children()[inline_lang]
-    local inline_query = vim.treesitter.query.parse(inline_lang, [[
-      (image
-        (image_description) @desc
-        (link_destination) @url
-      ) @image
-    ]])
+
+    local query_with_alt = vim.treesitter.query.parse(inline_lang,
+      "(image (image_description) @alt (link_destination) @url) @image")
     local shortcut_query =
       vim.treesitter.query.parse(inline_lang, "(image (image_description (shortcut_link (link_text) @url))) @image")
 
@@ -33,16 +30,14 @@ return document.create_document_integration({
       local root = tree:root()
       local current_image = nil
 
-      for _, query in ipairs({ inline_query, shortcut_query }) do
+      for _, query in ipairs({ query_with_alt, shortcut_query }) do
         ---@diagnostic disable-next-line: missing-parameter
         for id, node in query:iter_captures(root, buf) do
           local key = query.captures[id]
           local value = vim.treesitter.get_node_text(node, buf)
 
-          -- TODO: fix node:range() taking into account the extmarks for SOME FKING REASON
           if key == "image" then
             local start_row, start_col, end_row, end_col = node:range()
-
             current_image = {
               node = node,
               range = {
@@ -52,13 +47,14 @@ return document.create_document_integration({
                 end_col = end_col,
               },
             }
-          elseif key == "desc" then
-            -- 解析 Obsidian 风格尺寸: alt|600 或 alt|600x400
-            local alt, width, height = value:match("^(.-)|(%d+)$")
-              or value:match("^(.-)|(%d+)x(%d+)$")
-            if current_image and alt then
-              current_image.width = tonumber(width)
-              current_image.height = height and tonumber(height) or nil
+          elseif current_image and key == "alt" then
+            local pw, ph = value:match("|(%d+)x(%d+)")
+            if not pw then pw = value:match("|(%d+)") end
+            if pw then
+              current_image.width = math.ceil(tonumber(pw) / 8)
+              if ph then current_image.height = math.ceil(tonumber(ph) / 16) end
+            else
+              current_image.width = 50
             end
           elseif current_image and key == "url" then
             current_image.url = value
@@ -70,7 +66,6 @@ return document.create_document_integration({
     end
 
     inlines:for_each_tree(get_inline_images)
-
     return images
   end,
 })
