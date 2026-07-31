@@ -51,10 +51,10 @@ return document.create_document_integration({
             local pw, ph = value:match("|(%d+)x(%d+)")
             if not pw then pw = value:match("|(%d+)") end
             if pw then
-              current_image.width = math.max(6, math.floor(tonumber(pw) / 50))
-              if ph then current_image.height = math.max(3, math.floor(tonumber(ph) / 100)) end
+              current_image.width = tonumber(pw) -- 像素值，document.lua 会 ÷cell_width 转格数
+              if ph then current_image.height = tonumber(ph) end
             else
-              current_image.width = 40
+              current_image.width = 400 -- 默认 400px
             end
           elseif current_image and key == "url" then
             current_image.url = value
