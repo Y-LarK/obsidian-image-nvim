@@ -51,10 +51,10 @@ return document.create_document_integration({
             local pw, ph = value:match("|(%d+)x(%d+)")
             if not pw then pw = value:match("|(%d+)") end
             if pw then
-              current_image.width = math.max(20, math.floor(tonumber(pw) / 5))
-              if ph then current_image.height = math.max(10, math.floor(tonumber(ph) / 10)) end
+              current_image.width = math.max(6, math.floor(tonumber(pw) / 50))
+              if ph then current_image.height = math.max(3, math.floor(tonumber(ph) / 100)) end
             else
-              current_image.width = 80
+              current_image.width = 40
             end
           elseif current_image and key == "url" then
             current_image.url = value
