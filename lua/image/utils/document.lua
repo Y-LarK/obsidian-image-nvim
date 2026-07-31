@@ -200,11 +200,8 @@ local create_document_integration = function(config)
     local rwidth = item.match.width
     local rheight = item.match.height
     if rwidth or rheight then
-      local term_size = utils.term.get_size()
-      if term_size then
-        if rwidth then rwidth = math.floor(rwidth / term_size.cell_width) end
-        if rheight then rheight = math.floor(rheight / term_size.cell_height) end
-      end
+      if rwidth then rwidth = math.ceil(rwidth / 8) end
+      if rheight then rheight = math.ceil(rheight / 8) end
     end
 
     image:render({
